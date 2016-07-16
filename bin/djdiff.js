@@ -31,10 +31,11 @@ function main() {
 
     var switches = [
         ['-h', '--help',    'Show this help'],
-        ['-p', '--payload STRING', 'Specify payload type (xml or json, default: detect)'],
+        ['-p', '--payload STRING', 'Specify payload type (xml, jml or json, default: detect)'],
         ['-g', '--algo STRING', 'Specify algorithm (skelmatch or xcc, default: skelmatch)'],
         ['-x', '--xml',     'Use XML patch format (default)'],
         ['-j', '--json',    'Use JSON patch format'],
+        ['-l', '--jml',    'Use JsonML patch format'],
 //        ['--xmldocopt',     'Enable optimization for XML documents. Treat elements containing exactly one text node as a single unit.'],
         ['-d', '--debug',   'Log actions to console']
         ];
@@ -60,6 +61,10 @@ function main() {
 
     parser.on('json', function(name, value) {
         options.patchtype='json';
+    });
+
+    parser.on('jml', function(name, value) {
+        options.patchtype='jml';
     });
 
     parser.on('debug', function(name, value) {
