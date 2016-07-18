@@ -22,6 +22,7 @@ function main() {
 //        'changedenc': 'UTF-8',
         'filetype': undefined,
         'patchfile': undefined,
+        'patchtype': 'xml',
         'patchenc': 'UTF-8',
         'radius': 6,
         'threshold': 0.7,
@@ -32,6 +33,8 @@ function main() {
         ['-p', '--payload STRING', 'Specify payload type (xml or json, default: detect)'],
         ['-r', '--radius NUMBER',   'Search radius for fuzzy matching (default: 6)'],
         ['-t', '--threshold NUMBER','Threshold value for fuzzy matching (default: 0.7)'],
+        ['-x', '--xml',             'Use XML patch format (default)'],
+        ['-j', '--json',            'Use JSON patch format'],
 //        ['-o', '--output FILE',     'Write output to file path'],
         ['-d', '--debug',           'Log actions to console'],
         ];
@@ -45,6 +48,14 @@ function main() {
 
     parser.on('payload', function(name, value) {
         options.filetype=value;
+    });
+
+    parser.on('xml', function(name, value) {
+        options.patchtype='xml';
+    });
+
+    parser.on('json', function(name, value) {
+        options.patchtype='json';
     });
 
     parser.on('radius', function(name, value) {
@@ -71,8 +82,8 @@ function main() {
 
 
     // Check input files
-    var documentMimetype, patchMimetype, documentPayloadType, patchPayloadType,
-        resolverProfile, documentProfile, deltaProfile;
+    var documentMimetype, documentPayloadType, resolverProfile, documentProfile,
+        deltaProfile;
 
     if (!options.filetype) {
         documentMimetype = checkfile('original file', options.origfile);
@@ -87,10 +98,6 @@ function main() {
     else {
         documentPayloadType = options.filetype;
     }
-
-    patchMimetype = checkfile('patch file', options.patchfile);
-    patchPayloadType = profiles.getPayloadType(patchMimetype);
-
 
     // Setup algorithm profile
     resolverProfile = profiles.getResolverProfile();
@@ -107,9 +114,9 @@ function main() {
     }
 
     // Setup delta profile
-    deltaProfile = profiles.getDeltaProfile(patchPayloadType);
+    deltaProfile = profiles.getDeltaProfile(options.patchtype);
     if (!deltaProfile) {
-        console.error('The patch type "' + patchPayloadType + '" is not supported by djdiff');
+        console.error('The patch type "' + options.patchtype + '" is not supported by djdiff');
         process.exit(1);
     }
 
@@ -117,7 +124,7 @@ function main() {
     var doc = documentProfile.loadOriginalDocument(
             fs.readFileSync(options.origfile, options.origenc),
             options.origfile);
-    var fragadapter = documentProfile.createFragmentAdapter(patchPayloadType);
+    var fragadapter = documentProfile.createFragmentAdapter(options.patchtype);
     var deltadoc = deltaProfile.loadDocument(
             fs.readFileSync(options.patchfile, options.patchenc),
             fragadapter, options.patchfile);
